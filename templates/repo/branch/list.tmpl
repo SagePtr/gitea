@@ -23,15 +23,7 @@
 				{{.i18n.Tr "repo.branches"}}
 			</h4>
 			<div class="ui attached table segment">
-				<table class="ui very basic striped fixed table single line">
-					<thead>
-						<tr>
-							<th class="nine wide">{{.i18n.Tr "repo.branch.name"}}</th>
-							{{if and $.IsWriter (not $.IsMirror)}}
-								<th class="one wide right aligned">{{.i18n.Tr "repo.branch.delete_head"}}</th>
-							{{end}}
-						</tr>
-					</thead>
+				<table class="ui very basic striped table single line">
 					<tbody>
 						{{range $branch := .Branches}}
 							{{if ne .Name $.DefaultBranch}}
@@ -43,17 +35,24 @@
 									{{else}}
 										<a href="{{$.RepoLink}}/src/branch/{{.Name}}">{{.Name}}</a>
 										<p class="time">{{$.i18n.Tr "org.repo_updated"}} {{TimeSince .Commit.Committer.When $.i18n.Lang}}</p>
-									</td>
 									{{end}}
+									</td>
 									{{if and $.IsWriter (not $.IsMirror)}}
-										<td class="right aligned">
-										{{if .IsProtected}}
-											<i class="octicon octicon-shield"></i>
-										{{else if .IsDeleted}}
-											<a class="undo-button" href data-url="{{$.Link}}/restore?branch_id={{.DeletedBranch.ID | urlquery}}&name={{.DeletedBranch.Name | urlquery}}"><i class="octicon octicon-reply"></i></a>
-										{{else}}
-											<a class="delete-branch-button" href data-url="{{$.Link}}/delete?name={{.Name | urlquery}}" data-val="{{.Name}}"><i class="trash icon text red"></i></a>
+										{{if $.PullRequestCtx.Allowed}}
+											<td class="right aligned collapsing">
+												{{if not .IsDeleted}}
+													<a class="ui basic compact button" href="{{$.PullRequestCtx.BaseRepo.Link}}/compare/{{EscapePound $.PullRequestCtx.BaseRepo.DefaultBranch}}...{{if not $.PullRequestCtx.SameRepo}}{{$.Repository.Owner.Name}}:{{end}}{{EscapePound .Name}}"><i class="octicon octicon-git-pull-request"></i> {{$.i18n.Tr "repo.pulls.new"}}</a>
+												{{end}}
+											</td>
 										{{end}}
+										<td class="right aligned collapsing">
+											{{if .IsDeleted}}
+												<a class="undo-button" href data-url="{{$.Link}}/restore?branch_id={{.DeletedBranch.ID | urlquery}}&name={{.DeletedBranch.Name | urlquery}}"><i class="octicon octicon-reply"></i></a>
+											{{else if .IsProtected}}
+												<i class="octicon octicon-shield"></i>
+											{{else}}
+												<a class="delete-branch-button poping up" href data-url="{{$.Link}}/delete?name={{.Name | urlquery}}" data-val="{{.Name}}" data-content="{{$.i18n.Tr "repo.branch.delete_html"}}" data-variation="inverted tiny"><i class="trash icon text red right aligned"></i></a>
+											{{end}}
 										</td>
 									{{end}}
 								</tr>
